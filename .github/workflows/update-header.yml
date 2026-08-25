@@ -1,0 +1,32 @@
+name: Update header image
+on:
+  push:
+    paths:
+      - '.github/workflows/update-header.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace header image
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old='https://i.postimg.cc/prmqfk0N/1782584930171-removebg-preview-(1).png'
+          new='https://i.postimg.cc/rs7BS7xF/file-000000003d948207ac0d1ae3ccdc0cc7.png'
+          if old not in s:
+              raise SystemExit('old image URL not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: Commit change and remove workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html .github/workflows/update-header.yml
+          git rm .github/workflows/update-header.yml
+          git commit -m 'Update header profile image'
+          git push
