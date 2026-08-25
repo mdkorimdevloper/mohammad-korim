@@ -1,0 +1,52 @@
+name: Add second service
+on:
+  push:
+    paths:
+      - '.github/workflows/add-second-service.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add second service card
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text()
+          image = 'https://i.postimg.cc/2ysBPdgP/1787666532892.png'
+          if image in s:
+              raise SystemExit('Second service already exists')
+          start = s.find('<div class="services-grid">')
+          if start < 0:
+              raise SystemExit('services-grid not found')
+          pos = start + len('<div class="services-grid">')
+          depth = 1
+          tag_re = re.compile(r'<div\b[^>]*>|</div\s*>', re.I)
+          close_pos = None
+          for m in tag_re.finditer(s, pos):
+              if m.group(0).lower().startswith('<div'):
+                  if not m.group(0).rstrip().endswith('/>'):
+                      depth += 1
+              else:
+                  depth -= 1
+                  if depth == 0:
+                      close_pos = m.start()
+                      break
+          if close_pos is None:
+              raise SystemExit('services-grid closing tag not found')
+          card = f'''\n<article class="svc-card">\n  <img class="svc-card-img" src="{image}" alt="Web Development Service" loading="lazy"/>\n  <div class="svc-body">\n    <div class="svc-icon"><i class="fas fa-code"></i></div>\n    <h3>Web Development Service</h3>\n    <p>Professional, responsive and modern website development tailored to your business or personal brand.</p>\n    <div class="svc-tags">\n      <span class="svc-tag">Web Development</span>\n      <span class="svc-tag">Responsive</span>\n      <span class="svc-tag">SEO Friendly</span>\n    </div>\n    <div class="svc-meta">\n      <span class="svc-duration"><i class="fas fa-clock"></i> 7–14 Days</span>\n      <a class="svc-order" href="#contact">Order Now</a>\n    </div>\n  </div>\n</article>\n'''
+          s = s[:close_pos] + card + s[close_pos:]
+          p.write_text(s)
+          PY
+      - name: Commit and remove workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git rm .github/workflows/add-second-service.yml
+          git commit -m 'Add second service with new image'
+          git push
