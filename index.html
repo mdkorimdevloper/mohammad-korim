@@ -58,7 +58,7 @@ section{padding:70px 5%;}
 .services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:24px;max-width:1100px;margin:0 auto;}
 .svc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:.25s;cursor:pointer;}
 .svc-card:hover{box-shadow:var(--shadow);transform:translateY(-4px);border-color:var(--green);}
-.svc-card-img{width:100%;height:160px;object-fit:cover;display:block;}
+.svc-card-img{width:100%;aspect-ratio:16/9;height:auto;object-fit:cover;display:block;}
 .svc-card-img-placeholder{width:100%;height:160px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;}
 .svc-card-img-placeholder i{color:#fff;font-size:2.5rem;}
 .svc-body{padding:20px 20px 22px;}
@@ -573,6 +573,7 @@ async function insertRow(table, data) {
 
 // ============ DEFAULT DATA ============
 const defaultServices=[
+  {id:5,title:'Full Stack E-Commerce Website',icon:'fas fa-cart-shopping',description:'Complete, secure and scalable e-commerce website with frontend, backend, database, payment gateway integration, admin dashboard, SEO and responsive design.',tags:['Next.js','Node.js','MongoDB','Payment Gateway','Admin Dashboard','SEO'],duration:'7-14 Days',rating:'5.0',reviews:'New',image:'https://i.postimg.cc/FFLtgsWT/file-000000009d0081fa8c7959af5ce5a108.png'},
   {id:1,title:'Full Stack Website Development',icon:'fas fa-laptop-code',description:'Professional and responsive websites for businesses, portfolios, startups, and online services.',tags:['Business Website','Portfolio Design','Landing Page','Web Apps'],duration:'5-10 Days',rating:'4.9',reviews:'150+',image:''},
   {id:2,title:'Custom Software Development',icon:'fas fa-cogs',description:'Custom software solutions designed to improve business workflow and productivity.',tags:['Automation','Management Systems','API Integration','Database'],duration:'7-21 Days',rating:'4.8',reviews:'120+',image:''},
   {id:3,title:'Professional SEO Services',icon:'fas fa-search-dollar',description:'Search Engine Optimization to improve Google rankings and increase organic traffic.',tags:['On-Page SEO','Off-Page SEO','Technical SEO','Local SEO'],duration:'10-30 Days',rating:'4.8',reviews:'160+',image:''},
