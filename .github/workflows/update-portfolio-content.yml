@@ -1,0 +1,66 @@
+name: Update portfolio content
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-portfolio-content.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-portfolio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update reviews and Why Choose Me icons
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          new_reviews = """const defaultReviews=[
+            {id:1,name:'Bayezid Sheikh',country:'Bangladesh',role:'Client',text:'MD Korim provided excellent service, MashaAllah. He built the website exactly according to my requirements. Thank you, Korim ভাই, for your dedication and professional work.',stars:5,avatar:''},
+            {id:2,name:'CEO – Daily Choice',country:'Bangladesh',role:'CEO',text:'MD Korim understood our business requirements clearly and delivered a modern, professional website with a smooth user experience. We are very satisfied with the final result.',stars:5,avatar:''},
+            {id:3,name:'Brick Recycler',country:'United States',role:'Business Client',text:'Working with MD Korim was a great experience. He created a clean, responsive, and professional website that presents our business clearly and effectively.',stars:5,avatar:''}
+          ];"""
+
+          text, count = re.subn(r"const defaultReviews=\[.*?\];", new_reviews, text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('Could not locate defaultReviews in index.html')
+
+          icons = [
+              'fas fa-wand-magic-sparkles',
+              'fas fa-chart-line',
+              'fas fa-bolt',
+              'fas fa-mobile-screen-button',
+              'fas fa-shield-halved',
+              'fas fa-headset',
+              'fas fa-circle-check',
+              'fas fa-comments'
+          ]
+          pattern = re.compile(r'<div class="why-icon"><i class="[^"]+"></i></div>')
+          matches = list(pattern.finditer(text))
+          if len(matches) < 8:
+              raise SystemExit(f'Expected at least 8 Why Choose Me icons, found {len(matches)}')
+          for i in range(8):
+              old = matches[i].group(0)
+              new = f'<div class="why-icon"><i class="{icons[i]}"></i></div>'
+              text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Add client reviews and modernize Why Choose Me icons'
+          git push
