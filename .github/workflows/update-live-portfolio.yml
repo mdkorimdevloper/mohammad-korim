@@ -1,0 +1,67 @@
+name: Update Live Portfolio
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-live-portfolio.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-portfolio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update portfolio data and clickable cards
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          old = """const defaultPortfolio=[
+  {id:1,title:'E-commerce Website',type:'Website',description:'Full-featured online store with payment integration and admin panel.',img:'',link:''},
+  {id:2,title:'SaaS Platform',type:'Software',description:'Software as a service platform with subscription management.',img:'',link:''},
+  {id:3,title:'Local SEO Case Study',type:'SEO',description:'Ranked local business from page 5 to page 1 in 3 months.',img:'',link:''},
+  {id:4,title:'Mobile App Development',type:'App',description:'Android app for business management and tracking.',img:'',link:''}
+];"""
+
+          new = """const defaultPortfolio=[
+  {id:1,title:'Flowers.net.ph',type:'E-Commerce Website',description:'A professional online flower delivery platform designed for browsing and ordering fresh flowers, bouquets, gifts, and special occasion arrangements.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://www.flowers.net.ph/',link:'https://www.flowers.net.ph/'},
+  {id:2,title:'Brick Recycler',type:'Business Website',description:'A professional recycling business website presenting services, company information, and customer-focused solutions with a modern responsive interface.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://brickrecycler.com/',link:'https://brickrecycler.com/'},
+  {id:3,title:'Daily Choice',type:'E-Commerce Website',description:'A modern online flower store built to showcase products and provide customers with a simple and engaging shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://daily-choice.vercel.app/',link:'https://daily-choice.vercel.app/'},
+  {id:4,title:'Morocco Car Rental',type:'Car Rental Website',description:'A modern car rental website designed to help customers explore rental options and make their booking journey simple and convenient.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://morocco-carrental.com/',link:'https://morocco-carrental.com/'},
+  {id:5,title:'Toufa Fashion',type:'Fashion E-Commerce',description:'A stylish fashion e-commerce website designed to present products in a clean, attractive, and user-friendly shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://toufafashion.com/',link:'https://toufafashion.com/'},
+  {id:6,title:'Shohorer Bazar',type:'E-Commerce Website',description:'A modern online marketplace website created to showcase products and deliver a convenient digital shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://shohorer-bazar.vercel.app/',link:'https://shohorer-bazar.vercel.app/'},
+];"""
+
+          if old not in text:
+              raise SystemExit('defaultPortfolio block not found')
+          text = text.replace(old, new, 1)
+
+          old_card = """  const overlayLink = p.link ? `<a href=\"${p.link}\" target=\"_blank\"><i class=\"fas fa-external-link-alt\"></i> View</a>` : `<a href=\"#\" onclick=\"openPortDetail(${p.id})\">View Details</a>`;
+  return `<div class=\"port-card\">"""
+
+          new_card = """  const overlayLink = p.link ? `<a href=\"${p.link}\" target=\"_blank\" rel=\"noopener noreferrer\"><i class=\"fas fa-external-link-alt\"></i> Visit Live Website</a>` : `<a href=\"#\" onclick=\"openPortDetail(${p.id})\">View Details</a>`;
+  const cardOpen = p.link ? `onclick=\"window.open('${p.link}', '_blank', 'noopener,noreferrer')\" role=\"link\" tabindex=\"0\" onkeydown=\"if(event.key==='Enter'||event.key===' ') window.open('${p.link}', '_blank', 'noopener,noreferrer')\"` : '';
+  return `<div class=\"port-card\" ${cardOpen} style=\"cursor:${p.link?'pointer':'default'};\">"""
+
+          if old_card not in text:
+              raise SystemExit('portfolio card block not found')
+          text = text.replace(old_card, new_card, 1)
+
+          text = text.replace("document.getElementById('home-portfolio-grid').innerHTML = ps.slice(0,4).map(renderPortCard).join('');", "document.getElementById('home-portfolio-grid').innerHTML = ps.map(renderPortCard).join('');", 1)
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit portfolio update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Add 6 live projects to portfolio"
+          git push
