@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update portfolio
+      - name: Make portfolio images clickable
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -21,21 +21,13 @@ jobs:
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
 
-          portfolio = """const defaultPortfolio=[
-            {id:1,title:'Flowers.net.ph',type:'E-Commerce Website',description:'A professional online flower delivery platform designed for browsing and ordering fresh flowers, bouquets, gifts, and special occasion arrangements.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://www.flowers.net.ph/',link:'https://www.flowers.net.ph/'},
-            {id:2,title:'Brick Recycler',type:'Business Website',description:'A professional recycling business website presenting services, company information, and customer-focused solutions with a modern responsive interface.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://brickrecycler.com/',link:'https://brickrecycler.com/'},
-            {id:3,title:'Daily Choice',type:'E-Commerce Website',description:'A modern online flower store built to showcase products and provide customers with a simple and engaging shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://daily-choice.vercel.app/',link:'https://daily-choice.vercel.app/'},
-            {id:4,title:'Morocco Car Rental',type:'Car Rental Website',description:'A modern car rental website designed to help customers explore rental options and make their booking journey simple and convenient.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://morocco-carrental.com/',link:'https://morocco-carrental.com/'},
-            {id:5,title:'Toufa Fashion',type:'Fashion E-Commerce',description:'A stylish fashion e-commerce website designed to present products in a clean, attractive, and user-friendly shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://toufafashion.com/',link:'https://toufafashion.com/'},
-            {id:6,title:'Shohorer Bazar',type:'E-Commerce Website',description:'A modern online marketplace website created to showcase products and deliver a convenient digital shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://shohorer-bazar.vercel.app/',link:'https://shohorer-bazar.vercel.app/'},
-          ];"""
-
-          pattern = r"const defaultPortfolio=\[.*?\n\];"
-          text, count = re.subn(pattern, portfolio, text, count=1, flags=re.S)
+          pattern = r"  const thumb = p\.img \? .*?\n"
+          replacement = '''  const thumb = p.img ? `<a href="${p.link||'#'}" target="_blank" rel="noopener noreferrer" aria-label="Visit ${p.title}"><img src="${p.img}" alt="${p.title}" onerror="this.style.display='none';"></a>` : `<div class="port-thumb-placeholder"><i class="${typeIcons[p.type]||'fas fa-folder'}"></i></div>`;\n'''
+          text, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
           if count != 1:
-              raise SystemExit('defaultPortfolio block not found')
+              raise SystemExit('portfolio thumbnail line not found')
 
-          text = text.replace("document.getElementById('home-portfolio-grid').innerHTML = ps.slice(0,4).map(renderPortCard).join('');", "document.getElementById('home-portfolio-grid').innerHTML = ps.map(renderPortCard).join('');", 1)
+          text = text.replace(".port-thumb img{width:100%;height:100%;object-fit:cover;}", ".port-thumb a{display:block;width:100%;height:100%;}.port-thumb img{width:100%;height:100%;object-fit:cover;display:block;}", 1)
           path.write_text(text, encoding='utf-8')
           PY
       - name: Commit changes
@@ -43,5 +35,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Add six live projects to portfolio"
+          git diff --cached --quiet || git commit -m "Make portfolio project images clickable"
           git push
