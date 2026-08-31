@@ -23,6 +23,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
@@ -43,22 +44,20 @@ jobs:
             {id:6,title:'Shohorer Bazar',type:'E-Commerce Website',description:'A modern online marketplace website created to showcase products and deliver a convenient digital shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://shohorer-bazar.vercel.app/',link:'https://shohorer-bazar.vercel.app/'},
           ];"""
 
-          if old not in text:
-              raise SystemExit('defaultPortfolio block not found')
-          text = text.replace(old, new, 1)
+          if old in text:
+              text = text.replace(old, new, 1)
 
-          old_card = """  const overlayLink = p.link ? `<a href=\"${p.link}\" target=\"_blank\"><i class=\"fas fa-external-link-alt\"></i> View</a>` : `<a href=\"#\" onclick=\"openPortDetail(${p.id})\">View Details</a>`;
-          return `<div class=\"port-card\">"""
-
-          new_card = """  const overlayLink = p.link ? `<a href=\"${p.link}\" target=\"_blank\" rel=\"noopener noreferrer\"><i class=\"fas fa-external-link-alt\"></i> Visit Live Website</a>` : `<a href=\"#\" onclick=\"openPortDetail(${p.id})\">View Details</a>`;
-          const cardOpen = p.link ? `onclick=\"window.open('${p.link}', '_blank', 'noopener,noreferrer')\" role=\"link\" tabindex=\"0\" onkeydown=\"if(event.key==='Enter'||event.key===' ') window.open('${p.link}', '_blank', 'noopener,noreferrer')\"` : '';
-          return `<div class=\"port-card\" ${cardOpen} style=\"cursor:${p.link?'pointer':'default'};\">"""
-
-          if old_card not in text:
+          pattern = r"  const overlayLink = p\.link \? .*?\n  return `<div class=\"port-card\">"
+          replacement = """  const overlayLink = p.link ? `<a href=\"${p.link}\" target=\"_blank\" rel=\"noopener noreferrer\"><i class=\"fas fa-external-link-alt\"></i> Visit Live Website</a>` : `<a href=\"#\" onclick=\"openPortDetail(${p.id})\">View Details</a>`;
+  const cardOpen = p.link ? `onclick=\"window.open('${p.link}', '_blank', 'noopener,noreferrer')\" role=\"link\" tabindex=\"0\" onkeydown=\"if(event.key==='Enter'||event.key===' ') window.open('${p.link}', '_blank', 'noopener,noreferrer')\"` : '';
+  return `<div class=\"port-card\" ${cardOpen} style=\"cursor:${p.link?'pointer':'default'};\">"""
+          text, n = re.subn(pattern, replacement, text, count=1, flags=re.S)
+          if n != 1:
               raise SystemExit('portfolio card block not found')
-          text = text.replace(old_card, new_card, 1)
 
-          text = text.replace("document.getElementById('home-portfolio-grid').innerHTML = ps.slice(0,4).map(renderPortCard).join('');", "document.getElementById('home-portfolio-grid').innerHTML = ps.map(renderPortCard).join('');", 1)
+          old_home = "document.getElementById('home-portfolio-grid').innerHTML = ps.slice(0,4).map(renderPortCard).join('');"
+          new_home = "document.getElementById('home-portfolio-grid').innerHTML = ps.map(renderPortCard).join('');"
+          text = text.replace(old_home, new_home, 1)
 
           path.write_text(text, encoding='utf-8')
           PY
