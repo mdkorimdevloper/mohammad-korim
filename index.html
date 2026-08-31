@@ -583,10 +583,12 @@ const defaultServices=[
   {id:4,title:'Digital Marketing',icon:'fas fa-bullhorn',description:'Complete digital marketing solutions including Facebook Ads and Google Ads.',tags:['Facebook Ads','Google Ads','Social Media','Brand Promotion'],duration:'Ongoing',rating:'4.7',reviews:'80+',image:''}
 ];
 const defaultPortfolio=[
-  {id:1,title:'E-commerce Website',type:'Website',description:'Full-featured online store with payment integration and admin panel.',img:'',link:''},
-  {id:2,title:'SaaS Platform',type:'Software',description:'Software as a service platform with subscription management.',img:'',link:''},
-  {id:3,title:'Local SEO Case Study',type:'SEO',description:'Ranked local business from page 5 to page 1 in 3 months.',img:'',link:''},
-  {id:4,title:'Mobile App Development',type:'App',description:'Android app for business management and tracking.',img:'',link:''}
+  {id:1,title:'Flowers.net.ph',type:'E-Commerce Website',description:'A professional online flower delivery platform designed for browsing and ordering fresh flowers, bouquets, gifts, and special occasion arrangements.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://www.flowers.net.ph/',link:'https://www.flowers.net.ph/'},
+  {id:2,title:'Brick Recycler',type:'Business Website',description:'A professional recycling business website presenting services, company information, and customer-focused solutions with a modern responsive interface.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://brickrecycler.com/',link:'https://brickrecycler.com/'},
+  {id:3,title:'Daily Choice',type:'E-Commerce Website',description:'A modern online flower store built to showcase products and provide customers with a simple and engaging shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://daily-choice.vercel.app/',link:'https://daily-choice.vercel.app/'},
+  {id:4,title:'Morocco Car Rental',type:'Car Rental Website',description:'A modern car rental website designed to help customers explore rental options and make their booking journey simple and convenient.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://morocco-carrental.com/',link:'https://morocco-carrental.com/'},
+  {id:5,title:'Toufa Fashion',type:'Fashion E-Commerce',description:'A stylish fashion e-commerce website designed to present products in a clean, attractive, and user-friendly shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://toufafashion.com/',link:'https://toufafashion.com/'},
+  {id:6,title:'Shohorer Bazar',type:'E-Commerce Website',description:'A modern online marketplace website created to showcase products and deliver a convenient digital shopping experience.',img:'https://image.thum.io/get/width/1200/crop/800/noanimate/https://shohorer-bazar.vercel.app/',link:'https://shohorer-bazar.vercel.app/'},
 ];
 const defaultReviews=[
   {id:1,name:'John Doe',country:'United States',role:'Tech Lead',text:'Great work on our complex web app. A true full-stack expert. Delivered on time with excellent quality.',stars:5,avatar:''},
@@ -660,7 +662,7 @@ function renderPortCard(p){
 async function renderHomePortfolio(){
   let ps = await getRows('portfolio');
   if(!ps||!ps.length) ps = defaultPortfolio;
-  document.getElementById('home-portfolio-grid').innerHTML = ps.slice(0,4).map(renderPortCard).join('');
+  document.getElementById('home-portfolio-grid').innerHTML = ps.map(renderPortCard).join('');
 }
 async function renderPortfolioPage(){
   let ps = await getRows('portfolio');
