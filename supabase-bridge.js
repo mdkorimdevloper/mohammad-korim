@@ -3,18 +3,23 @@
   const SUPABASE_KEY='sb_publishable_scbgKsavJ9d--uD8Xxx7AQ_Jh0H8EkS';
   const map={reviews:'site_reviews',orders:'site_orders',team:'team_members'};
   const table=t=>map[t]||t;
-  const orderedTables=new Set(['services','portfolio','team_members','site_reviews','site_orders','contact_messages','team_messages']);
+  const syncTables=new Set(['services','portfolio','team_members','site_reviews','site_orders','contact_messages','team_messages']);
+  const orderedTables=new Set([...syncTables]);
   let client=null;
   const ready=(async()=>{
-    if(!window.supabase){
-      await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});
-    }
-    client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-    window.__sharedSupabase=client;
-    window.dispatchEvent(new CustomEvent('mdkorim-supabase-ready'));
-    console.log('MD Korim: shared Supabase connection ready');
-    return client;
+    try{
+      if(!window.supabase){
+        await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});
+      }
+      client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      window.__sharedSupabase=client;
+      window.__supabaseReady=Promise.resolve(client);
+      window.dispatchEvent(new CustomEvent('mdkorim-supabase-ready'));
+      console.log('MD Korim: shared Supabase connection ready');
+      return client;
+    }catch(e){console.error('MD Korim Supabase init failed',e);throw e;}
   })();
+  window.__supabaseReady=ready;
   window.getRows=async function(t){
     const c=await ready; let q=c.from(table(t)).select('*');
     if(orderedTables.has(table(t))) q=q.order('created_at',{ascending:true});
@@ -25,13 +30,16 @@
   };
   window.insertRow=async function(t,obj){
     const c=await ready; const clean={...obj};
-    if(clean.id!==undefined && ['services','portfolio','team_members','site_reviews','site_orders','contact_messages','team_messages'].includes(table(t))) delete clean.id;
+    if(clean.tags && typeof clean.tags==='string'){try{clean.tags=JSON.parse(clean.tags)}catch{}}
+    if(clean.id!==undefined && syncTables.has(table(t))) delete clean.id;
     const {data,error}=await c.from(table(t)).insert(clean).select().single();
     if(error){console.error('Supabase insertRow '+t,error);return null}
     return data?[data]:null;
   };
   window.updateRow=async function(t,id,obj){
-    const c=await ready; const {data,error}=await c.from(table(t)).update(obj).eq('id',id).select().single();
+    const c=await ready; const clean={...obj};
+    if(clean.tags && typeof clean.tags==='string'){try{clean.tags=JSON.parse(clean.tags)}catch{}}
+    const {data,error}=await c.from(table(t)).update(clean).eq('id',id).select().single();
     if(error){console.error('Supabase updateRow '+t,error);return null}
     return data?[data]:null;
   };
@@ -50,4 +58,20 @@
     if(error){console.error('Supabase upsertSetting',error);return null}
     return data||null;
   };
+  const originalDbSetAll=window.dbSetAll;
+  if(typeof originalDbSetAll==='function'){
+    window.dbSetAll=function(t,arr){
+      originalDbSetAll(t,arr);
+      if(syncTables.has(table(t)) && Array.isArray(arr)){
+        ready.then(async c=>{
+          for(const row of arr){
+            const clean={...row};
+            if(clean.tags && typeof clean.tags==='string'){try{clean.tags=JSON.parse(clean.tags)}catch{}}
+            const {error}=await c.from(table(t)).upsert(clean,{onConflict:'id'});
+            if(error) console.error('Supabase legacy sync '+t,error);
+          }
+        }).catch(e=>console.error('Supabase legacy sync init',e));
+      }
+    };
+  }
 })();
