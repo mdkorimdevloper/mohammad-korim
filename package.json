@@ -1,0 +1,13 @@
+{
+  "name": "mohammad-korim-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MD Korim - Full Stack Developer & SEO Expert portfolio website",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
