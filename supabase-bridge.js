@@ -8,8 +8,7 @@
     try{
       if(!window.supabase){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});}
       const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-      window.__sharedSupabase=client; window.__supabaseReady=Promise.resolve(client);
-      window.dispatchEvent(new CustomEvent('mdkorim-supabase-ready')); return client;
+      window.__sharedSupabase=client; window.__supabaseReady=Promise.resolve(client); window.dispatchEvent(new CustomEvent('mdkorim-supabase-ready')); return client;
     }catch(e){console.error('MD Korim Supabase init failed',e);throw e;}
   })();
   window.__supabaseReady=ready;
@@ -37,6 +36,18 @@
   window.deleteRow=async function(t,id){const c=await ready; const {error}=await c.from(table(t)).delete().eq('id',id); if(error){console.error(error);return false} return true;};
   window.getSetting=async function(key){const c=await ready; const {data,error}=await c.from('site_settings').select('value').eq('key',key).maybeSingle(); if(error){console.error(error);return null} return data?data.value:null;};
   window.upsertSetting=async function(key,value){const c=await ready; const {data,error}=await c.from('site_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'}).select().single(); if(error){console.error(error);return null} return data;};
+  async function applyProfileImage(){
+    try{
+      const v=await window.getSetting('profile_image');
+      const url=v&&v.url?String(v.url).trim():'';
+      if(!url)return;
+      const selectors=['.hero-img img','.profile-image img','img[data-profile-image]','img.profile-img','img.avatar'];
+      const apply=()=>{let found=false;selectors.forEach(sel=>document.querySelectorAll(sel).forEach(img=>{img.src=url;img.removeAttribute('srcset');img.setAttribute('data-profile-image','true');found=true;}));return found;};
+      if(!apply()){let tries=0;const timer=setInterval(()=>{tries++;if(apply()||tries>=20)clearInterval(timer);},500);}
+    }catch(e){console.error('Profile image load failed',e)}
+  }
+  ready.then(applyProfileImage).catch(console.error);
+  window.addEventListener('mdkorim-supabase-ready',applyProfileImage);
   const originalDbSetAll=window.dbSetAll;
   if(typeof originalDbSetAll==='function')window.dbSetAll=function(t,arr){originalDbSetAll(t,arr); if(syncTables.has(table(t))&&Array.isArray(arr))ready.then(async c=>{for(const row of arr){const clean={...row};delete clean.id;delete clean.created_at;delete clean.updated_at;const {error}=await c.from(table(t)).insert({data:clean});if(error)console.error(error);}}).catch(console.error);};
 })();
