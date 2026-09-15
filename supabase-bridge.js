@@ -50,4 +50,41 @@
   window.addEventListener('mdkorim-supabase-ready',applyProfileImage);
   const originalDbSetAll=window.dbSetAll;
   if(typeof originalDbSetAll==='function')window.dbSetAll=function(t,arr){originalDbSetAll(t,arr); if(syncTables.has(table(t))&&Array.isArray(arr))ready.then(async c=>{for(const row of arr){const clean={...row};delete clean.id;delete clean.created_at;delete clean.updated_at;const {error}=await c.from(table(t)).insert({data:clean});if(error)console.error(error);}}).catch(console.error);};
+
+  // Hero signboard role animation only. No other page content is changed.
+  function initRoleBoard(){
+    const roleEl=document.querySelector('.hero-text h1 span');
+    if(!roleEl || roleEl.dataset.roleBoardReady==='true') return;
+    roleEl.dataset.roleBoardReady='true';
+    const roles=['Full Stack Web Developer','Full Stack Software Developer','AI Developer','SEO Expert'];
+    const style=document.createElement('style');
+    style.textContent=`
+      .hero-text h1 .role-board{
+        display:inline-block;
+        min-width:1ch;
+        white-space:nowrap;
+        transition:transform .55s ease,opacity .55s ease;
+        will-change:transform,opacity;
+      }
+      .hero-text h1 .role-board.role-out{transform:translateY(-115%);opacity:0;}
+      .hero-text h1 .role-board.role-in{transform:translateY(115%);opacity:0;}
+    `;
+    document.head.appendChild(style);
+    roleEl.classList.add('role-board');
+    let index=0;
+    roleEl.textContent=roles[index];
+    function nextRole(){
+      roleEl.classList.add('role-out');
+      setTimeout(()=>{
+        index=(index+1)%roles.length;
+        roleEl.classList.remove('role-out');
+        roleEl.classList.add('role-in');
+        roleEl.textContent=roles[index];
+        requestAnimationFrame(()=>requestAnimationFrame(()=>roleEl.classList.remove('role-in')));
+      },550);
+    }
+    setInterval(nextRole,2800);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initRoleBoard);
+  else initRoleBoard();
 })();
