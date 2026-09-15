@@ -56,6 +56,15 @@
     const roleEl=document.querySelector('.hero-text h1 span');
     if(!roleEl || roleEl.dataset.roleBoardReady==='true') return;
     roleEl.dataset.roleBoardReady='true';
+    const heading=roleEl.closest('h1');
+    if(heading){
+      Array.from(heading.childNodes).forEach(node=>{
+        if(node.nodeType===3 && node.textContent.includes('& SEO Expert')) node.textContent=node.textContent.replace(/\s*& SEO Expert\s*$/,'');
+      });
+      const line=document.createElement('span');
+      line.className='hero-role-line';
+      roleEl.insertAdjacentElement('afterend',line);
+    }
     const roles=['Full Stack Web Developer','Full Stack Software Developer','AI Developer','SEO Expert'];
     const style=document.createElement('style');
     style.textContent=`
@@ -68,6 +77,15 @@
       }
       .hero-text h1 .role-board.role-out{transform:translateY(-115%);opacity:0;}
       .hero-text h1 .role-board.role-in{transform:translateY(115%);opacity:0;}
+      .hero-text h1 .hero-role-line{
+        display:inline-block;
+        width:54px;
+        height:3px;
+        margin-left:10px;
+        vertical-align:middle;
+        background:var(--accent);
+        border-radius:3px;
+      }
     `;
     document.head.appendChild(style);
     roleEl.classList.add('role-board');
