@@ -51,7 +51,7 @@
   const originalDbSetAll=window.dbSetAll;
   if(typeof originalDbSetAll==='function')window.dbSetAll=function(t,arr){originalDbSetAll(t,arr); if(syncTables.has(table(t))&&Array.isArray(arr))ready.then(async c=>{for(const row of arr){const clean={...row};delete clean.id;delete clean.created_at;delete clean.updated_at;const {error}=await c.from(table(t)).insert({data:clean});if(error)console.error(error);}}).catch(console.error);};
 
-  // Hero signboard role animation only. No other page content is changed.
+  // Hero signboard role animation only.
   function initRoleBoard(){
     const roleEl=document.querySelector('.hero-text h1 span');
     if(!roleEl || roleEl.dataset.roleBoardReady==='true') return;
@@ -65,13 +65,14 @@
       line.className='hero-role-line';
       roleEl.insertAdjacentElement('afterend',line);
     }
-    const roles=['Full Stack Web Developer','Full Stack Software Developer','AI Developer','SEO Expert'];
+    const roles=['Full Stack Web\nDeveloper','Full Stack Software\nDeveloper','AI Developer','SEO Expert'];
     const style=document.createElement('style');
     style.textContent=`
       .hero-text h1 .role-board{
         display:inline-block;
-        min-width:1ch;
-        white-space:nowrap;
+        min-width:360px;
+        white-space:pre-line;
+        vertical-align:middle;
         transition:transform .55s ease,opacity .55s ease;
         will-change:transform,opacity;
       }
@@ -85,6 +86,9 @@
         vertical-align:middle;
         background:var(--accent);
         border-radius:3px;
+      }
+      @media(max-width:600px){
+        .hero-text h1 .role-board{min-width:0;}
       }
     `;
     document.head.appendChild(style);
