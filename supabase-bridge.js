@@ -16,18 +16,16 @@
   const originalDbSetAll=window.dbSetAll;if(typeof originalDbSetAll==='function')window.dbSetAll=function(t,arr){originalDbSetAll(t,arr);if(syncTables.has(table(t))&&Array.isArray(arr))ready.then(async c=>{for(const row of arr){const clean={...row};delete clean.id;delete clean.created_at;delete clean.updated_at;const {error}=await c.from(table(t)).insert({data:clean});if(error)console.error(error);}}).catch(console.error);};
 
   const NEW_PROFILE_IMAGE='https://i.postimg.cc/zGjXyqgJ/1789666143836-removebg-preview.png';
-  function applyImage(){document.querySelectorAll('.hero-img img,.about-img,.team-avatar,.profile-image img,img[data-profile-image],img.profile-img,img.avatar').forEach(img=>{img.src=NEW_PROFILE_IMAGE;img.removeAttribute('srcset');img.setAttribute('data-profile-image','true');});}
+  function applyImage(){document.querySelectorAll('.hero-img img,.about-img,.team-avatar,.profile-image img,img[data-profile-image]').forEach(img=>{img.src=NEW_PROFILE_IMAGE;img.removeAttribute('srcset');img.setAttribute('data-profile-image','true');});}
   function initRequestedDesign(){
     if(document.body.dataset.requestedDesign==='true')return;
     document.body.dataset.requestedDesign='true';
     const style=document.createElement('style');
     style.textContent=`
-      /* Header: small profile only, no separate large card */
-      .md-profile-header{background:transparent!important;color:inherit!important;padding:6px 5%!important;box-shadow:none!important;border:0!important;position:relative;z-index:5;}
-      .md-profile-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:flex-start;gap:9px;}
-      .md-profile-avatar{width:38px;height:38px;object-fit:contain;display:block;flex-shrink:0;}
-      .md-profile-name{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:800;line-height:1.1;}
-      .md-profile-sub{display:none!important;}
+      /* Use the existing navigation only. No extra header/card is created. */
+      nav .logo{display:flex!important;align-items:center!important;gap:8px!important;}
+      nav .logo .md-nav-avatar{width:34px!important;height:34px!important;border-radius:50%!important;object-fit:cover!important;display:block!important;border:2px solid var(--green)!important;}
+      nav .logo .md-nav-name{font-family:'Poppins',sans-serif!important;font-size:1rem!important;font-weight:800!important;color:var(--green)!important;line-height:1!important;}
       /* Keep the original hero image position visible */
       .hero-img{display:block!important;visibility:visible!important;opacity:1!important;}
       .hero-img img{display:block!important;visibility:visible!important;opacity:1!important;width:auto!important;max-width:100%!important;}
@@ -39,14 +37,17 @@
       .footer-brand p,.footer-col ul li a{color:#eaf7ee!important;}
       .footer-social a{background:rgba(255,255,255,.15)!important;color:#fff!important;}
       .footer-bottom{border-top-color:rgba(255,255,255,.25)!important;color:#d8f0df!important;}
-      @media(max-width:600px){.md-profile-inner{justify-content:flex-start;}.md-profile-avatar{width:34px;height:34px;}.md-profile-name{font-size:.95rem;}}
+      @media(max-width:600px){nav .logo .md-nav-avatar{width:32px!important;height:32px!important;}nav .logo .md-nav-name{font-size:.92rem!important;}}
     `;
     document.head.appendChild(style);
     const nav=document.querySelector('nav');
-    if(nav&&!document.querySelector('.md-profile-header')){
-      const header=document.createElement('div');header.className='md-profile-header';
-      header.innerHTML=`<div class="md-profile-inner"><img class="md-profile-avatar" src="${NEW_PROFILE_IMAGE}" alt="MD Korim"><div class="md-profile-name">MD Korim</div></div>`;
-      nav.insertAdjacentElement('afterend',header);
+    if(nav){
+      const logo=nav.querySelector('.logo');
+      if(logo){
+        logo.innerHTML=`<img class="md-nav-avatar" src="${NEW_PROFILE_IMAGE}" alt="MD Korim"><span class="md-nav-name">MD Korim</span>`;
+      }
+      const oldHeader=nav.parentElement?.querySelector('.md-profile-header');
+      if(oldHeader)oldHeader.remove();
     }
     const hero=document.querySelector('.hero-text');
     if(hero){const h1=hero.querySelector('h1');if(h1)h1.textContent="I'm MD Korim";}
