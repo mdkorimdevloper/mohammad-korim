@@ -31,6 +31,37 @@ function sendJson(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
+const SYSTEM_INSTRUCTIONS = [
+  "You are Korim AI Assistant, the public portfolio chatbot for Mohammad Korim (MD Korim), a developer based in Bangladesh.",
+  "Help website visitors understand Korim's services, projects, and how to contact him.",
+  "Services include full-stack website development, e-commerce websites, custom software and API integration, and SEO services (on-page, off-page, technical, and local SEO). Digital marketing may also be discussed.",
+  "Portfolio website: https://mohammad-korim.vercel.app/",
+  "Other portfolio project: https://clippingpath.live/",
+  "Contact email: mdkorimdeveloper@gmail.com",
+  "When relevant, invite visitors to email Korim with project requirements for a quote. Do not invent prices, availability, credentials, client results, or technical details not provided here.",
+  "Answer in the language the visitor uses. Keep replies friendly, clear, and concise. If you do not know an answer, say so honestly and point them to the contact email.",
+  "Do not claim you can send emails, book meetings, access private systems, or perform actions outside this chat."
+].join("\n");
+
+function demoAnswer(question) {
+  if (/(hi|hello|hey|assalamu|সালাম|হ্যালো|হাই)/i.test(question)) {
+    return "Hello! I'm Korim AI Assistant. I can help you explore Korim's development services, portfolio, and contact details.";
+  } else if (/(service|services|সার্ভিস|সেবা|কি কাজ|কী কাজ)/i.test(question)) {
+    return "Korim offers full-stack website development, e-commerce websites, custom software and API integration, and SEO services such as on-page, off-page, technical, and local SEO. For a project quote, email mdkorimdeveloper@gmail.com.";
+  } else if (/(portfolio|project|projects|কাজ|প্রজেক্ট|ওয়েবসাইট|website)/i.test(question)) {
+    return "You can explore Korim's portfolio at https://mohammad-korim.vercel.app/ and another project at https://clippingpath.live/. Ask me about services or how to contact Korim.";
+  } else if (/(contact|email|hire|যোগাযোগ|ইমেইল|নিয়োগ|কাজ দিতে)/i.test(question)) {
+    return "You can contact Korim at mdkorimdeveloper@gmail.com. Please include your project goals, required features, and expected timeline so he can understand your requirements.";
+  } else if (/(seo|search engine|এসইও)/i.test(question)) {
+    return "Korim can help with on-page SEO, off-page SEO, technical SEO, and local SEO. Share your website URL and your main goal by email: mdkorimdeveloper@gmail.com.";
+  } else if (/(price|pricing|cost|quote|দাম|খরচ|মূল্য|কত টাকা)/i.test(question)) {
+    return "Project pricing depends on the scope and features, so I don't want to guess a price. Email mdkorimdeveloper@gmail.com with your requirements to request a quote.";
+  } else if (/(skill|skills|technology|tech stack|দক্ষতা|টেকনোলজি)/i.test(question)) {
+    return "Korim works across full-stack web development, frontend and backend development, Flutter, Python, JavaScript, Supabase, REST APIs, and SEO-related services. Contact him for details about a specific project.";
+  }
+  return "Thanks for your question! This is the free demo mode, so I can answer common questions about services, portfolio, SEO, and contact details. For a specific request, email mdkorimdeveloper@gmail.com. A live AI API can be connected later.";
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -67,32 +98,45 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 400, { error: "Please enter a valid message." });
   }
 
-  // Free demo mode: provide portfolio FAQ replies until an API key is configured.
-  // Add OPENAI_API_KEY in Vercel later to enable live AI automatically.
-  if (!process.env.OPENAI_API_KEY) {
-    const question = messages[messages.length - 1].content.toLowerCase();
-    let answer;
-    if (/\b(hi|hello|hey|assalamu|সালাম|হ্যালো|হাই)\b/.test(question)) {
-      answer = "Hello! I'm Korim AI Assistant. I can help you explore Korim's development services, portfolio, and contact details.";
-    } else if (/\b(service|services|সার্ভিস|সেবা|কি কাজ|কী কাজ)\b/.test(question)) {
-      answer = "Korim offers full-stack website development, e-commerce websites, custom software and API integration, and SEO services such as on-page, off-page, technical, and local SEO. For a project quote, email mdkorimdeveloper@gmail.com.";
-    } else if (/\b(portfolio|project|projects|কাজ|প্রজেক্ট|ওয়েবসাইট|website)\b/.test(question)) {
-      answer = "You can explore Korim's portfolio at https://mohammad-korim.vercel.app/ and another project at https://clippingpath.live/. Ask me about services or how to contact Korim.";
-    } else if (/\b(contact|email|hire|যোগাযোগ|ইমেইল|নিয়োগ|কাজ দিতে)\b/.test(question)) {
-      answer = "You can contact Korim at mdkorimdeveloper@gmail.com. Please include your project goals, required features, and expected timeline so he can understand your requirements.";
-    } else if (/\b(seo|search engine|এসইও)\b/.test(question)) {
-      answer = "Korim can help with on-page SEO, off-page SEO, technical SEO, and local SEO. Share your website URL and your main goal by email: mdkorimdeveloper@gmail.com.";
-    } else if (/\b(price|pricing|cost|quote|দাম|খরচ|মূল্য|কত টাকা)\b/.test(question)) {
-      answer = "Project pricing depends on the scope and features, so I don't want to guess a price. Email mdkorimdeveloper@gmail.com with your requirements to request a quote.";
-    } else if (/\b(skill|skills|technology|tech stack|দক্ষতা|টেকনোলজি)\b/.test(question)) {
-      answer = "Korim works across full-stack web development, frontend and backend development, Flutter, Python, JavaScript, Supabase, REST APIs, and SEO-related services. Contact him for details about a specific project.";
-    } else {
-      answer = "Thanks for your question! This is the free demo mode, so I can answer common questions about services, portfolio, SEO, and contact details. For a specific request, email mdkorimdeveloper@gmail.com. A live AI API can be connected later.";
-    }
-    return sendJson(res, 200, { answer, mode: "demo" });
+  // Free FAQ demo mode works without any provider key.
+  if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+    return sendJson(res, 200, { answer: demoAnswer(messages[messages.length - 1].content), mode: "demo" });
   }
 
   try {
+    // Prefer Gemini when GEMINI_API_KEY is configured. Keep the key on the server only.
+    if (process.env.GEMINI_API_KEY) {
+      const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+      const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: "POST",
+        headers: {
+          "x-goog-api-key": process.env.GEMINI_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTIONS }] },
+          contents: messages.map((message) => ({
+            role: message.role === "assistant" ? "model" : "user",
+            parts: [{ text: message.content }]
+          })),
+          generationConfig: { maxOutputTokens: 350, temperature: 0.5 }
+        }),
+        signal: AbortSignal.timeout(20000)
+      });
+
+      if (!upstream.ok) {
+        return sendJson(res, 502, { error: "Sorry, I couldn't generate a reply right now. Please check the Gemini API configuration and try again." });
+      }
+      const result = await upstream.json();
+      const answer = (result.candidates?.[0]?.content?.parts || [])
+        .map((part) => typeof part.text === "string" ? part.text : "")
+        .join("\n")
+        .trim();
+      if (!answer) return sendJson(res, 502, { error: "I couldn't generate a reply. Please try again." });
+      return sendJson(res, 200, { answer, provider: "gemini" });
+    }
+
+    // Optional OpenAI fallback for existing deployments.
     const upstream = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -103,27 +147,13 @@ module.exports = async function handler(req, res) {
         model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
         store: false,
         max_output_tokens: 350,
-        instructions: [
-          "You are Korim AI Assistant, the public portfolio chatbot for Mohammad Korim (MD Korim), a developer based in Bangladesh.",
-          "Help website visitors understand Korim's services, projects, and how to contact him.",
-          "Services include full-stack website development, e-commerce websites, custom software and API integration, and SEO services (on-page, off-page, technical, and local SEO). Digital marketing may also be discussed.",
-          "Portfolio website: https://mohammad-korim.vercel.app/",
-          "Other portfolio project: https://clippingpath.live/",
-          "Contact email: mdkorimdeveloper@gmail.com",
-          "When relevant, invite visitors to email Korim with project requirements for a quote. Do not invent prices, availability, credentials, client results, or technical details not provided here.",
-          "Answer in the language the visitor uses. Keep replies friendly, clear, and concise. If you do not know an answer, say so honestly and point them to the contact email.",
-          "Do not claim you can send emails, book meetings, access private systems, or perform actions outside this chat."
-        ].join("\n"),
+        instructions: SYSTEM_INSTRUCTIONS,
         input: messages
       }),
       signal: AbortSignal.timeout(20000)
     });
 
-    if (!upstream.ok) {
-      // Do not expose provider response details or credentials to public visitors.
-      return sendJson(res, 502, { error: "Sorry, I couldn't generate a reply right now. Please try again shortly." });
-    }
-
+    if (!upstream.ok) return sendJson(res, 502, { error: "Sorry, I couldn't generate a reply right now. Please try again shortly." });
     const result = await upstream.json();
     const answer = (result.output || [])
       .flatMap((item) => Array.isArray(item.content) ? item.content : [])
@@ -133,11 +163,10 @@ module.exports = async function handler(req, res) {
       .trim();
 
     if (!answer) return sendJson(res, 502, { error: "I couldn't generate a reply. Please try again." });
-    return sendJson(res, 200, { answer });
+    return sendJson(res, 200, { answer, provider: "openai" });
   } catch {
     return sendJson(res, 502, { error: "The chat service is temporarily unavailable. Please try again shortly." });
   }
 };
 
-// Vercel's built-in body parser rejects overly large JSON bodies before the handler.
 module.exports.config = { api: { bodyParser: { sizeLimit: "8kb" } } };
