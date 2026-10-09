@@ -12,7 +12,7 @@
     @keyframes kc-pop{from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
     .kc-head{position:relative;overflow:hidden;background:linear-gradient(120deg,#312e81,#5b21b6 58%,#4338ca);color:#fff;padding:19px 18px 17px;display:flex;align-items:center;gap:12px}
     .kc-head:after{content:"";position:absolute;width:150px;height:150px;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-48px;top:-85px;box-shadow:0 0 0 22px rgba(255,255,255,.035),0 0 0 44px rgba(255,255,255,.025);pointer-events:none}
-    .kc-avatar{position:relative;flex-shrink:0;width:45px;height:45px;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.26),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:19px;font-weight:800;letter-spacing:-.5px}
+    .kc-avatar{position:relative;flex-shrink:0;width:45px;height:45px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);display:block;overflow:visible}.kc-avatar-photo{width:100%;height:100%;border-radius:15px;object-fit:cover;display:block}
     .kc-online{position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:50%;background:#4ade80;border:2px solid #4c1d95}
     .kc-title{font-size:15px;font-weight:750;letter-spacing:-.2px}.kc-subtitle{font-size:11px;color:rgba(255,255,255,.78);margin-top:4px;display:flex;align-items:center;gap:5px}
     .kc-subtitle:before{content:"";width:6px;height:6px;background:#4ade80;border-radius:50%;display:inline-block}
@@ -56,7 +56,7 @@
   panel.setAttribute("aria-modal", "false");
   panel.innerHTML = `
     <div class="kc-head">
-      <div class="kc-avatar" aria-hidden="true">K<span class="kc-online"></span></div>
+      <div class="kc-avatar"><img class="kc-avatar-photo" src="https://i.postimg.cc/rs7BS7xF/file-000000003d948207ac0d1ae3ccdc0cc7.png" alt="Md Korim, Korim AI Assistant profile" /><span class="kc-online" aria-hidden="true"></span></div>
       <div><div class="kc-title">Korim AI Assistant</div><div class="kc-subtitle">Here to help you explore</div></div>
       <button id="korim-chat-close" type="button" aria-label="Close chat">×</button>
     </div>
@@ -150,6 +150,7 @@
       if (!response.ok) throw new Error(data.error || "The assistant is unavailable right now.");
       const answer = String(data.answer || "").slice(0, 5000);
       pending.textContent = answer || "I couldn't generate a reply. Please try again.";
+      if (data.mode === "demo") pending.textContent += "\n\nNote: AI mode is not connected yet, so this is a limited FAQ reply. The site owner needs to add GEMINI_API_KEY in Vercel Environment Variables for open-ended AI answers.";
       history.push({ role: "assistant", content: pending.textContent });
     } catch (error) {
       pending.textContent = error.message || "Connection failed. Please try again.";
