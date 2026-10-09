@@ -2,6 +2,10 @@
 
 This portfolio widget uses a static JavaScript UI and a Vercel serverless function at `/api/chat`. The AI provider key is read only by the server.
 
+## Free demo mode
+
+The chatbot can answer common preset questions about services, portfolio projects, SEO, skills, pricing requests, and contact information without an AI API key. Unrecognized questions receive a fallback answer explaining the demo limitation. No provider API charges occur in this mode.
+
 ## 1. Add the AI API key in Vercel
 
 1. Open the Vercel dashboard and select the `mohammad-korim` project.
