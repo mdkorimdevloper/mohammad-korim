@@ -49,10 +49,6 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 429, { error: "Too many messages. Please wait a few minutes and try again." });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    return sendJson(res, 503, { error: "The chat assistant is not configured yet. Please contact Korim by email." });
-  }
-
   let body = req.body;
   if (typeof body === "string") {
     try { body = JSON.parse(body); } catch { return sendJson(res, 400, { error: "Invalid request." }); }
@@ -69,6 +65,31 @@ module.exports = async function handler(req, res) {
 
   if (!messages.length || messages[messages.length - 1].role !== "user") {
     return sendJson(res, 400, { error: "Please enter a valid message." });
+  }
+
+  // Free demo mode: provide portfolio FAQ replies until an API key is configured.
+  // Add OPENAI_API_KEY in Vercel later to enable live AI automatically.
+  if (!process.env.OPENAI_API_KEY) {
+    const question = messages[messages.length - 1].content.toLowerCase();
+    let answer;
+    if (/\b(hi|hello|hey|assalamu|সালাম|হ্যালো|হাই)\b/.test(question)) {
+      answer = "Hello! I'm Korim AI Assistant. I can help you explore Korim's development services, portfolio, and contact details.";
+    } else if (/\b(service|services|সার্ভিস|সেবা|কি কাজ|কী কাজ)\b/.test(question)) {
+      answer = "Korim offers full-stack website development, e-commerce websites, custom software and API integration, and SEO services such as on-page, off-page, technical, and local SEO. For a project quote, email mdkorimdeveloper@gmail.com.";
+    } else if (/\b(portfolio|project|projects|কাজ|প্রজেক্ট|ওয়েবসাইট|website)\b/.test(question)) {
+      answer = "You can explore Korim's portfolio at https://mohammad-korim.vercel.app/ and another project at https://clippingpath.live/. Ask me about services or how to contact Korim.";
+    } else if (/\b(contact|email|hire|যোগাযোগ|ইমেইল|নিয়োগ|কাজ দিতে)\b/.test(question)) {
+      answer = "You can contact Korim at mdkorimdeveloper@gmail.com. Please include your project goals, required features, and expected timeline so he can understand your requirements.";
+    } else if (/\b(seo|search engine|এসইও)\b/.test(question)) {
+      answer = "Korim can help with on-page SEO, off-page SEO, technical SEO, and local SEO. Share your website URL and your main goal by email: mdkorimdeveloper@gmail.com.";
+    } else if (/\b(price|pricing|cost|quote|দাম|খরচ|মূল্য|কত টাকা)\b/.test(question)) {
+      answer = "Project pricing depends on the scope and features, so I don't want to guess a price. Email mdkorimdeveloper@gmail.com with your requirements to request a quote.";
+    } else if (/\b(skill|skills|technology|tech stack|দক্ষতা|টেকনোলজি)\b/.test(question)) {
+      answer = "Korim works across full-stack web development, frontend and backend development, Flutter, Python, JavaScript, Supabase, REST APIs, and SEO-related services. Contact him for details about a specific project.";
+    } else {
+      answer = "Thanks for your question! This is the free demo mode, so I can answer common questions about services, portfolio, SEO, and contact details. For a specific request, email mdkorimdeveloper@gmail.com. A live AI API can be connected later.";
+    }
+    return sendJson(res, 200, { answer, mode: "demo" });
   }
 
   try {
