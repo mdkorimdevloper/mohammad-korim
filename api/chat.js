@@ -12,6 +12,9 @@ const buckets = globalThis.__korimChatRateLimit || (globalThis.__korimChatRateLi
 
 function rateLimit(ip) {
   const now = Date.now();
+  if (buckets.size > 1000) {
+    for (const [key, value] of buckets) if (now >= value.resetAt) buckets.delete(key);
+  }
   const current = buckets.get(ip);
   if (!current || now >= current.resetAt) {
     buckets.set(ip, { count: 1, resetAt: now + WINDOW_MS });
